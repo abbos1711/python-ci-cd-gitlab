@@ -1,0 +1,4 @@
+Pillow
+djangorestframework
+gunicorn
+drf_yasg
