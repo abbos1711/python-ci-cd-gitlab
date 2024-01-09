@@ -1,0 +1,51 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_NAME: my-app
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  DOCKER_HOST: tcp://docker:2375
+  CI_REGISTRY: registry.gitlab.com
+  CI_REGISTRY_USER: my-gitlab-username
+  CI_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
+  SSH_PRIVATE_KEY: ${{SSH_PRIVATE_KEY}}
+  SERVER_IP: 95.130.227.6
+  SSH_USER: root
+  CONTAINER_NAME: my-app-container
+
+build-image:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+
+  script:
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  services:
+    - docker:20.10.16-dind
+
+  before_script:
+    - apk add --update openssh
+    - apk add rsync
+
+  script:
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 700 ~/.ssh/known_hosts
+
+    - ssh $SSH_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh $SSH_USER@$SERVER_IP "docker stop $CONTAINER_NAME || true"
+    - ssh $SSH_USER@$SERVER_IP "docker rm $CONTAINER_NAME || true"
+    - ssh $SSH_USER@$SERVER_IP "docker image rm $IMAGE_NAME:$IMAGE_TAG || true"
+    - ssh $SSH_USER@$SERVER_IP "docker run --name $CONTAINER_NAME -d -p 8888:8888 $IMAGE_NAME:$IMAGE_TAG"
+
+  only:
+    - main
