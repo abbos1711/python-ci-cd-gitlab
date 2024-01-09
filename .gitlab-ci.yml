@@ -7,6 +7,9 @@ variables:
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
   DOCKER_HOST: tcp://docker:2375
   CI_REGISTRY: registry.gitlab.com
+  #docker login registry.gitlab.com
+  #docker build -t registry.gitlab.com/neoanderson1099/video-backend .
+  #docker push registry.gitlab.com/neoanderson1099/video-backend
   CI_REGISTRY_USER: my-gitlab-username
   CI_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
   SSH_PRIVATE_KEY: ${{SSH_PRIVATE_KEY}}
@@ -22,7 +25,8 @@ build-image:
 
   script:
     - docker build -t $IMAGE_NAME:$IMAGE_TAG .
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login registry.gitlab.com
+#    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker push $IMAGE_NAME:$IMAGE_TAG
 
 deploy:
