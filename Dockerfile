@@ -22,7 +22,7 @@ RUN . venv/bin/activate && \
     python manage.py migrate
 
 # Expose the port the app runs on
-EXPOSE 8000
+EXPOSE 8888
 
 # Command to run your application
-CMD ["sh", "-c", ". venv/bin/activate && python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", ". venv/bin/activate && python manage.py runserver 0.0.0.0:8888"]
