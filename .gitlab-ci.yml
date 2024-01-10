@@ -28,8 +28,8 @@ build-image:
 #    - docker login registry.gitlab.com
 #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 #    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker login --username $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-
+#    - docker login --username $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - docker login --username $CI_REGISTRY_USER --password "$(cat password.txt)" $CI_REGISTRY
     - docker push $IMAGE_NAME:$IMAGE_TAG
 
 deploy:
