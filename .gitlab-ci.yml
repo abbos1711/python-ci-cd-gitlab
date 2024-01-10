@@ -2,59 +2,43 @@ stages:
   - build
   - deploy
 
-variables:
-  IMAGE_NAME: my-app
-  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
-  DOCKER_HOST: tcp://docker:2375
-  CI_REGISTRY: registry.gitlab.com
-  #docker login registry.gitlab.com
-  #docker build -t registry.gitlab.com/neoanderson1099/video-backend .
-  #docker push registry.gitlab.com/neoanderson1099/video-backend
-  CI_REGISTRY_USER: my-gitlab-username
-  CI_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
-  SSH_PRIVATE_KEY: ${{SSH_PRIVATE_KEY}}
-  SERVER_IP: 95.130.227.6
-  SSH_USER: root
-  CONTAINER_NAME: my-app-container
-
 build-image:
   stage: build
   image: docker:20.10.16
   services:
     - docker:20.10.16-dind
-
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $REGISTRY_USER -p $REGISTRY_PASS
   script:
     - docker build -t $IMAGE_NAME:$IMAGE_TAG .
-#    - docker login registry.gitlab.com
-#    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#    - docker login --username $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-#    - docker login --username $CI_REGISTRY_USER --password "$(cat password.txt)" $CI_REGISTRY
-#    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - echo "$CI_REGISTRY_PERSONAL_ACCESS_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker push $IMAGE_NAME:$IMAGE_TAG
+  only:
+    - main
 
 deploy:
   stage: deploy
-  image: alpine:latest
-  services:
-    - docker:20.10.16-dind
-
   before_script:
-    - apk add --update openssh
-    - apk add rsync
-
+   - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )' 
+   - eval $(ssh-agent -s)
+   - echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+   - mkdir -p ~/.ssh
+   - chmod 600 ~/.ssh
+   - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+   - chmod 700 ~/.ssh/known_hosts
   script:
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 700 ~/.ssh/known_hosts
-
-    - ssh $SSH_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
-    - ssh $SSH_USER@$SERVER_IP "docker stop $CONTAINER_NAME || true"
-    - ssh $SSH_USER@$SERVER_IP "docker rm $CONTAINER_NAME || true"
-    - ssh $SSH_USER@$SERVER_IP "docker image rm $IMAGE_NAME:$IMAGE_TAG || true"
-    - ssh $SSH_USER@$SERVER_IP "docker run --name $CONTAINER_NAME -d -p 8888:8888 $IMAGE_NAME:$IMAGE_TAG"
-
+   #- ssh -o StrictHostKeyChecking=no -i $SSH_KEY root@$SERVER_IP "
+  #- ssh $SSH_USER@$SERVER_IP "hostname && echo 'Welcome!!!' >  welcome3.txt"
+  #- ssh -o StrictHostKeyChecking=no -i $SSH_USER@$SERVER_IP  "
+    - ssh $SSH_USER@$SERVER_IP "hostname && echo 'Welcome!!!' > welcome2.txt" "
+        docker login -u $REGISTRY_USER -p $REGISTRY_PASS && 
+        docker stop $CONTAINER_NAME || true &&
+        docker rm $CONTAINER_NAME || true &&
+        docker image rm $IMAGE_NAME || true &&
+        docker run --name $CONTAINER_NAME  
+        -e POSTGRES_HOST=$POSTGRES_HOST -e POSTGRES_DATABASE=$POSTGRES_DATABASE -e POSTGRES_USER=$POSTGRES_USER 
+        -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD 
+        -d -p 8888:8888 $IMAGE_NAME:$IMAGE_TAG"
   only:
     - main
