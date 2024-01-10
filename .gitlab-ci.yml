@@ -30,7 +30,8 @@ build-image:
 #    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
 #    - docker login --username $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
 #    - docker login --username $CI_REGISTRY_USER --password "$(cat password.txt)" $CI_REGISTRY
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+#    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "$CI_REGISTRY_PERSONAL_ACCESS_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker push $IMAGE_NAME:$IMAGE_TAG
 
 deploy:
