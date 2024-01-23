@@ -17,6 +17,7 @@ RUN python -m venv venv && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
+    
 # Run migrations
 RUN . venv/bin/activate && \
     python manage.py migrate
