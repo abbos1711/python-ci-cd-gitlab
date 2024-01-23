@@ -1,0 +1,35 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install Docker
+        run: |
+          sudo apt update
+          sudo apt install docker.io -y
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t docker-test .
+          docker login -u 10449 -p ${{ secrets.DOCKERHUB_TOKEN }}
+          docker tag docker-test 10449/docker-test
+          docker push 10449/docker-test
+
+      - name: SSH into server and deploy
+        run: |
+          ssh root@95.130.227.6 "docker pull 10449/docker-test && docker-compose up -d"
