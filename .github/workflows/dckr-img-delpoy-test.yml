@@ -45,4 +45,6 @@ jobs:
 
       - name: SSH into server and deploy
         run: |
-          ssh  root@95.130.227.6 "docker pull 10449/docker-test && docker-compose up -d"
+          ssh root@95.130.227.6 'docker pull 10449/docker-test && docker run -d -p 8866:8866 10449/docker-test'
+#          ssh  root@95.130.227.6 "docker pull 10449/docker-test && docker-compose up -d"
+          
