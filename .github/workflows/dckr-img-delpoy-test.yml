@@ -18,10 +18,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Update packages
-        run: |
-          sudo apt-get update -y
-          sudo apt-get upgrade -y
+  #    - name: Update packages
+  #      run: |
+  #        sudo apt-get update -y
+  #        sudo apt-get upgrade -y
 
       - name: Remove conflicting packages
         run: |
