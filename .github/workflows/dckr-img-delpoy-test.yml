@@ -26,18 +26,12 @@ jobs:
       - name: Remove conflicting packages
         run: |
           sudo apt-get remove -y containerd
+          sudo apt-get clean
+          sudo apt-get update
           sudo apt-get autoremove -y
-
-      - name: Clean package cache
-        run: sudo apt-get clean
-
-      - name: Install containerd.io
-        run: |
           sudo apt-get install -y containerd.io
 
-      - name: Install Docker
-        run: |
-          sudo apt-get install docker.io -y
+
 
       - name: Build and push Docker image
         run: |
