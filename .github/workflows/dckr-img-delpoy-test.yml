@@ -20,14 +20,16 @@ jobs:
 
       - name: Install Docker
         run: |
-          sudo apt update
           sudo apt-get update -y
           sudo apt-get upgrade -y
-          sudo apt-get remove -y containerd
-          sudo apt-get install -y containerd.io
           sudo apt-get install docker.io -y
           sudo apt install docker.io -y
-
+      - name: Remove conflicting packages
+        run: sudo apt-get remove -y containerd
+      - name: Clean package cache
+        run: sudo apt-get clean
+      - name: Install containerd.io
+        run: sudo apt-get install -y containerd.io
       - name: Build and push Docker image
         run: |
           docker build -t docker-test .
