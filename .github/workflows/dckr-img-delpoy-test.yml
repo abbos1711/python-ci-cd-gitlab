@@ -40,6 +40,9 @@ jobs:
           docker tag docker-test 10449/docker-test
           docker push 10449/docker-test
 
+      - name: Disable strict host key checking
+        run: echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
       - name: SSH into server and deploy
         run: |
-          ssh root@95.130.227.6 "docker pull 10449/docker-test && docker-compose up -d"
+          ssh  root@95.130.227.6 "docker pull 10449/docker-test && docker-compose up -d"
